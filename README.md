@@ -252,19 +252,23 @@ Add a new record to `RAW.airport_comments`. Then materialize the incremental mod
 
 Add your solution in the next lines:
 * Adding a new record:
-  ```
-  REPLACE THIS CODE BLOCK BY PASTING THE SQL for adding a new record to `RAW.airport_comments`
+  ```sql
+  insert into RAW.airport_comments
+    (id, thread_ref, airport_ref, airport_ident, date, member_nickname, subject, body)
+  values
+    (602622, 602622, 3632, 'KLAX', current_timestamp(), 'claude_test_user', 'Test comment for Exercise 8',
+     'This is a test comment added to verify the incremental model picks up new records correctly.')
   ```
 * Command to execute to update this model (but only this model, not all the models):
-  ```
-  REPLACE THIS CODE BLOCK BY PASTING THE dbt COMMAND YOU EXECUTED
+  ```sh
+  dbt run --select silver_airport_comments
   ``` 
 * Execute an SQL on the Snowflake UI to ensure the new record has been added:
+  ```sql
+  SELECT * FROM AIRSTATS.DEV.silver_airport_comments WHERE comment_id = 602622;
   ```
-  REPLACE THIS CODE BLOCK BY PASTING 
-  1) THE SQL to extract the new record from `silver_airport_comments`
-  2) THE result you see in Snowflake
-  ``` 
+  Result: the row was present, confirming the incremental run picked up the new record —
+  `comment_id: 602622, airport_ident: KLAX, member_nickname: claude_test_user, comment_subject: Test comment for Exercise 8, comment_body: This is a test comment...`, with `loaded_at` populated at build time.
 
 **Requirements** 
 * Every table in the silver layer must be materialized as a table by default through instructions in `dbt_project.yml`
