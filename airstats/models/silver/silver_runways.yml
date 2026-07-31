@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: silver_runways
+    columns:
+      - name: runway_id
+        tests:
+          - unique
+          - not_null
+
+      - name: airport_ident
+        tests:
+          - not_null
+          - relationships:
+              config:
+                severity: warn
+
+              arguments:
+                to: ref('silver_airports')
+                field: airport_ident
+      - name: runway_surface
+        tests:
+          - not_null
+
+      - name: runway_length_ft
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0

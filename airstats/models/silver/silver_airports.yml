@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: silver_airports
+    columns:
+      - name: airport_ident
+        tests:
+          - unique
+          - not_null
+
+      - name: airport_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - small_airport
+                  - medium_airport
+                  - large_airport
+                  - heliport
+                  - seaplane_base
+                  - balloonport
+                  - closed
+
+      - name: airport_name
+        tests:
+          - not_null
+
+      - name: airport_lat
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -90
+                max_value: 90
+      - name: airport_long
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: -180
+                max_value: 180
+      - name: iso_country
+        tests:
+          - not_null

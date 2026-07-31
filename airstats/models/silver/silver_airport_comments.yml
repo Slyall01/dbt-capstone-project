@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: silver_airport_comments
+    columns:
+      - name: comment_id
+        tests:
+          - unique
+          - not_null
+
+      - name: airport_ident
+        tests:
+          - not_null
+          - relationships:
+              config:
+                severity: warn
+
+              arguments:
+                to: ref('silver_airports')
+                field: airport_ident
+      - name: comment_body
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 1
+      - name: loaded_at
+        tests:
+          - not_null
