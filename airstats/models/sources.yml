@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: airstats
+    schema: RAW
+    description: "Raw AirStats tables loaded from OurAirports.com into Snowflake."
+    tables:
+      - name: airports
+        description: "Global airport registry (~72K rows)."
+      - name: runways
+        description: "Physical runway data for airports (~44K rows)."
+      - name: comments
+        identifier: airport_comments
+        description: "User-submitted comments about airports."
