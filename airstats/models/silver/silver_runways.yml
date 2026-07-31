@@ -2,13 +2,19 @@ version: 2
 
 models:
   - name: silver_runways
+    description: >
+      One row per physical runway, cleaned from src_runways. Null or empty runway_surface values are
+      replaced with '__UNKNOWN__'; every other column is passed through unchanged. Each runway
+      belongs to exactly one airport via airport_ident.
     columns:
       - name: runway_id
+        description: "Primary key of this table; one row per runway."
         tests:
           - unique
           - not_null
 
       - name: airport_ident
+        description: '{{ doc("airport_ident") }}'
         tests:
           - not_null
           - relationships:
@@ -18,12 +24,26 @@ models:
               arguments:
                 to: ref('silver_airports')
                 field: airport_ident
-      - name: runway_surface
-        tests:
-          - not_null
 
       - name: runway_length_ft
+        description: "Runway length in feet."
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
+
+      - name: runway_width_ft
+        description: "Runway width in feet."
+
+      - name: runway_surface
+        description: >
+          Surface material of the runway (e.g. ASP, CON, GRS). Null or empty values from the source
+          are replaced with '__UNKNOWN__' in this model.
+        tests:
+          - not_null
+
+      - name: runway_lighted
+        description: "1 if the runway is lit at night, 0 otherwise."
+
+      - name: runway_closed
+        description: "1 if the runway is closed, 0 otherwise."

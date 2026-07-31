@@ -2,13 +2,20 @@ version: 2
 
 models:
   - name: silver_airport_comments
+    description: >
+      One row per user-submitted comment about an airport, cleaned from src_airport_comments. Rows
+      with a null or empty comment_body are dropped, and null member_nickname values are replaced with
+      '__UNKNOWN__'. Built incrementally: only rows with comment_id greater than the current max in
+      this table are added on each run after the first.
     columns:
       - name: comment_id
+        description: "Primary key of this table; one row per comment."
         tests:
           - unique
           - not_null
 
       - name: airport_ident
+        description: '{{ doc("airport_ident") }}'
         tests:
           - not_null
           - relationships:
@@ -18,12 +25,25 @@ models:
               arguments:
                 to: ref('silver_airports')
                 field: airport_ident
+
+      - name: comment_timestamp
+        description: "When the comment was posted."
+
+      - name: member_nickname
+        description: "Username of the commenter. Null values from the source are replaced with '__UNKNOWN__'."
+
+      - name: comment_subject
+        description: "Subject line of the comment."
+
       - name: comment_body
+        description: "Body text of the comment. Rows with a null or empty body are excluded from this model."
         tests:
           - not_null
           - dbt_expectations.expect_column_value_lengths_to_be_between:
               arguments:
                 min_value: 1
+
       - name: loaded_at
+        description: "Timestamp this row was loaded into silver_airport_comments, set to current_timestamp() at build time."
         tests:
           - not_null

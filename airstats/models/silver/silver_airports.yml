@@ -2,13 +2,19 @@ version: 2
 
 models:
   - name: silver_airports
+    description: >
+      One row per airport, cleaned from src_airports with no transformations applied. This is the
+      hub of the silver layer: silver_runways and silver_airport_comments both reference it via
+      airport_ident.
     columns:
       - name: airport_ident
+        description: '{{ doc("airport_ident") }}'
         tests:
           - unique
           - not_null
 
       - name: airport_type
+        description: "The airport's classification, e.g. small_airport, large_airport, heliport, or closed."
         tests:
           - not_null
           - accepted_values:
@@ -23,21 +29,33 @@ models:
                   - closed
 
       - name: airport_name
+        description: "The airport's official name."
         tests:
           - not_null
 
       - name: airport_lat
+        description: "Latitude of the airport in decimal degrees."
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: -90
                 max_value: 90
+
       - name: airport_long
+        description: "Longitude of the airport in decimal degrees."
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: -180
                 max_value: 180
+
+      - name: continent
+        description: "Two-letter continent code the airport is located in (e.g. EU, NA)."
+
       - name: iso_country
+        description: "ISO 3166-1 alpha-2 country code the airport is located in (e.g. US, DE)."
         tests:
           - not_null
+
+      - name: iso_region
+        description: "ISO 3166-2 region code the airport is located in (e.g. US-CA)."
