@@ -315,3 +315,18 @@ Implement the following:
 * Add descriptions to the silver tables and their columns
 * Use a '{{ doc("...") }}'-based documentation at least once
 * Create an overview.md where you discuss in a few sentences how the silver tables interconnect
+
+---
+
+## Extension: Gold Layer & Executive Dashboard
+
+Beyond the core assignment, this project adds a gold layer and an executive dashboard on top of it.
+
+**Gold marts** (`models/gold/`):
+* `mart_exec_summary` — single-row headline metrics (airport/runway/comment totals, % scheduled service, % lighted runways, avg runway length)
+* `mart_top_countries_by_airports`, `mart_top_airports_by_runways`, `mart_top_airports_by_comments` — top-10 rankings
+* `mart_comment_activity_trend` — comments per month
+
+Building these required widening `src_airports`/`silver_airports` with three columns the core exercises didn't need (`airport_elevation_ft`, `airport_municipality`, `airport_scheduled_service`).
+
+**Dashboard**: [`dashboards/executive_summary.html`](dashboards/executive_summary.html) is a static, self-contained snapshot of the gold layer — open it directly in a browser. It was also published as a live Claude Artifact for interactive viewing/sharing; regenerate either by re-querying the gold marts and re-running the build.

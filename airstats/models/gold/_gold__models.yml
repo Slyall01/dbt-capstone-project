@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: mart_exec_summary
+    description: >
+      Single-row headline summary for the executive dashboard: airport counts, % with scheduled
+      service, runway stats, and total comments.
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          arguments:
+            value: 1
+    columns:
+      - name: total_airports
+        description: "Total number of airports in silver_airports."
+      - name: total_open_airports
+        description: "Airports where airport_type is not 'closed'."
+      - name: total_closed_airports
+        description: "Airports where airport_type is 'closed'."
+      - name: pct_scheduled_service
+        description: "Percent of airports with scheduled commercial service."
+      - name: countries_represented
+        description: "Distinct count of iso_country across all airports."
+      - name: continents_represented
+        description: "Distinct count of continent across all airports."
+      - name: total_runways
+        description: "Total number of runways in silver_runways."
+      - name: pct_lighted_runways
+        description: "Percent of runways that are lighted."
+      - name: avg_runway_length_ft
+        description: "Average runway length in feet."
+      - name: total_comments
+        description: "Total number of comments in silver_airport_comments."
+
+  - name: mart_top_countries_by_airports
+    description: "Top 10 countries ranked by number of airports."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          arguments:
+            value: 10
+    columns:
+      - name: iso_country
+        description: "ISO 3166-1 alpha-2 country code."
+        tests:
+          - unique
+          - not_null
+      - name: airport_count
+        description: "Number of airports in this country."
+        tests:
+          - not_null
+      - name: rank
+        description: "1 = country with the most airports."
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_top_airports_by_runways
+    description: "Top 10 airports ranked by number of runways."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          arguments:
+            value: 10
+    columns:
+      - name: airport_ident
+        description: '{{ doc("airport_ident") }}'
+        tests:
+          - unique
+          - not_null
+      - name: runway_count
+        description: "Number of runways this airport has."
+        tests:
+          - not_null
+      - name: rank
+        description: "1 = airport with the most runways."
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_top_airports_by_comments
+    description: "Top 10 airports ranked by number of comments."
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          arguments:
+            value: 10
+    columns:
+      - name: airport_ident
+        description: '{{ doc("airport_ident") }}'
+        tests:
+          - unique
+          - not_null
+      - name: comment_count
+        description: "Number of comments about this airport."
+        tests:
+          - not_null
+      - name: rank
+        description: "1 = airport with the most comments."
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_comment_activity_trend
+    description: "Number of comments posted per calendar month, across the full comment history."
+    columns:
+      - name: comment_month
+        description: "First day of the month a batch of comments belongs to."
+        tests:
+          - unique
+          - not_null
+      - name: comment_count
+        description: "Number of comments posted during this month."
+        tests:
+          - not_null

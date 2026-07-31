@@ -1,0 +1,695 @@
+<title>AirStats Executive Summary</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --series-1-wash:  rgba(42,120,214,0.10);
+    --card-shadow:    0 1px 2px rgba(11,11,11,0.05), 0 4px 14px rgba(11,11,11,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-1-wash:  rgba(57,135,229,0.14);
+      --card-shadow:    0 1px 2px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-1-wash:  rgba(57,135,229,0.14);
+    --card-shadow:    0 1px 2px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .viz-root {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    padding: 32px 20px 60px;
+    max-width: 1180px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .viz-root * { box-sizing: border-box; }
+
+  .header { margin-bottom: 28px; }
+  .header .eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-muted); margin: 0 0 6px;
+  }
+  .header h1 { font-size: 26px; font-weight: 650; margin: 0 0 6px; text-wrap: balance; }
+  .header p { font-size: 14px; color: var(--text-secondary); margin: 0; max-width: 68ch; line-height: 1.5; }
+
+  .section-title {
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin: 44px 0 16px;
+  }
+
+  /* Stat tiles */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 18px;
+  }
+  .kpi-tile {
+    background: var(--surface-1);
+    box-shadow: var(--card-shadow);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+  }
+  .kpi-tile .kpi-icon { width: 22px; height: 22px; margin-bottom: 12px; color: var(--series-1); }
+  .kpi-tile .kpi-icon svg { display: block; width: 100%; height: 100%; }
+  .kpi-tile .kpi-label { font-size: 12.5px; color: var(--text-secondary); margin: 0 0 8px; line-height: 1.3; }
+  .kpi-tile .kpi-value { font-size: 26px; font-weight: 650; line-height: 1; margin: 0; font-variant-numeric: proportional-nums; }
+  .kpi-tile .kpi-sub { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
+  .kpi-tile .kpi-sub b { color: var(--text-secondary); font-weight: 650; }
+
+  .kpi-tile--primary {
+    border-top: 3px solid var(--series-1);
+    padding-top: 16px;
+    grid-column: span 2;
+  }
+  .kpi-tile--primary .kpi-icon { width: 26px; height: 26px; }
+  .kpi-tile--primary .kpi-value { font-size: 40px; }
+  @media (max-width: 480px) {
+    .kpi-tile--primary { grid-column: span 1; }
+  }
+
+  /* Chart card */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 22px;
+  }
+  .chart-card {
+    background: var(--surface-1);
+    box-shadow: var(--card-shadow);
+    border-radius: 12px;
+    padding: 20px 22px 16px;
+    min-width: 0;
+  }
+  .chart-card-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    margin-bottom: 4px;
+  }
+  .chart-card-head h3 { font-size: 14.5px; font-weight: 600; margin: 0; }
+  .chart-card-head p.chart-caption { font-size: 12px; color: var(--text-muted); margin: 3px 0 0; }
+  .table-toggle {
+    flex: none;
+    font-size: 12px; font-weight: 550; color: var(--text-secondary);
+    background: transparent; border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; cursor: pointer;
+  }
+  .table-toggle:hover { color: var(--text-primary); border-color: var(--text-muted); }
+  .chart-body { margin-top: 10px; overflow-x: auto; }
+  .chart-body svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+  .data-table { display: none; width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  .data-table.is-visible { display: table; }
+  .chart-body.is-hidden { display: none; }
+  .data-table th, .data-table td {
+    text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--gridline);
+    font-variant-numeric: tabular-nums;
+  }
+  .data-table th { color: var(--text-muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .data-table td:last-child, .data-table th:last-child { text-align: right; }
+
+  /* Bar chart marks */
+  .bar-row-hit { fill: transparent; cursor: pointer; }
+  .bar-row-hit:hover ~ .bar-fill, .bar-fill.is-hover { fill: var(--series-1); filter: brightness(1.12); }
+  .bar-fill { fill: var(--series-1); }
+  .bar-cat-label { fill: var(--text-secondary); font-size: 12.5px; }
+  .bar-val-label { fill: var(--text-primary); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .grid-line { stroke: var(--gridline); stroke-width: 1; shape-rendering: crispEdges; }
+  .axis-line { stroke: var(--baseline); stroke-width: 1; shape-rendering: crispEdges; }
+  .axis-tick-label { fill: var(--text-muted); font-size: 11px; }
+
+  /* Line chart marks */
+  .line-path { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .area-path { fill: var(--series-1-wash); }
+  .end-dot { fill: var(--series-1); stroke: var(--surface-1); stroke-width: 2; }
+  .crosshair { stroke: var(--baseline); stroke-width: 1; shape-rendering: crispEdges; display: none; }
+  .hover-dot { fill: var(--series-1); stroke: var(--surface-1); stroke-width: 2; display: none; }
+  .line-end-label { fill: var(--text-primary); font-size: 12px; font-weight: 600; }
+
+  /* Tooltip */
+  .viz-tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+    padding: 8px 11px;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.08s ease;
+    max-width: 240px;
+  }
+  .viz-tooltip.is-visible { opacity: 1; }
+  .viz-tooltip .tt-value { font-weight: 650; font-size: 13.5px; }
+  .viz-tooltip .tt-label { color: var(--text-secondary); margin-top: 2px; }
+
+  .footnotes {
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--gridline);
+    font-size: 12px; color: var(--text-muted); line-height: 1.6;
+  }
+  .footnotes p { margin: 0 0 6px; }
+
+  @media (max-width: 600px) {
+    .header h1 { font-size: 22px; }
+    .kpi-tile .kpi-value { font-size: 22px; }
+    .kpi-tile--primary .kpi-value { font-size: 30px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .viz-tooltip { transition: none; }
+  }
+</style>
+
+<div class="viz-root">
+  <div class="header">
+    <p class="eyebrow">AirStats &middot; gold layer</p>
+    <h1>Executive Summary</h1>
+    <p>Global airport, runway, and community-engagement data sourced from OurAirports.com, transformed through the AirStats dbt project. Snapshot as of 2026-07-31 &mdash; static, regenerate on request.</p>
+  </div>
+
+  <div class="section-title">Headline metrics</div>
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-tile kpi-tile--primary">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></div>
+      <p class="kpi-label">Total airports</p>
+      <p class="kpi-value">72,774</p>
+      <p class="kpi-sub"><b>87.3%</b> open</p>
+    </div>
+
+    <div class="kpi-tile">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div>
+      <p class="kpi-label">Open airports</p>
+      <p class="kpi-value">63,564</p>
+      <p class="kpi-sub"><b>9,210</b> closed</p>
+    </div>
+
+    <div class="kpi-tile">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.86a10 10 0 0 1 14 0"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M12 20h.01"/></svg></div>
+      <p class="kpi-label">Scheduled service</p>
+      <p class="kpi-value">5.7%</p>
+      <p class="kpi-sub"><b>4,148</b> airports</p>
+    </div>
+
+    <div class="kpi-tile">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="1"/><line x1="6" y1="12" x2="9" y2="12"/><line x1="11" y1="12" x2="14" y2="12"/><line x1="16" y1="12" x2="19" y2="12"/></svg></div>
+      <p class="kpi-label">Total runways</p>
+      <p class="kpi-value">43,777</p>
+      <p class="kpi-sub"><b>3,248 ft</b> avg length</p>
+    </div>
+
+    <div class="kpi-tile">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <p class="kpi-label">Lighted runways</p>
+      <p class="kpi-value">25.7%</p>
+      <p class="kpi-sub"><b>11,251</b> runways</p>
+    </div>
+
+    <div class="kpi-tile">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <p class="kpi-label">Total comments</p>
+      <p class="kpi-value">15,644</p>
+      <p class="kpi-sub"><b>1,367</b> unmatched</p>
+    </div>
+
+    <div class="kpi-tile">
+      <div class="kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <p class="kpi-label">Countries represented</p>
+      <p class="kpi-value">245</p>
+      <p class="kpi-sub"><b>7</b> continents</p>
+    </div>
+  </div>
+
+  <div class="section-title">Top 10 rankings</div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div>
+          <h3>Countries by airport count</h3>
+          <p class="chart-caption">Number of registered airports per country</p>
+        </div>
+        <button class="table-toggle" data-target="countries">Table view</button>
+      </div>
+      <div class="chart-body" id="countries-chart"></div>
+      <table class="data-table" id="countries-table"></table>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div>
+          <h3>Airports by runway count</h3>
+          <p class="chart-caption">Airports with the most physical runways</p>
+        </div>
+        <button class="table-toggle" data-target="runways">Table view</button>
+      </div>
+      <div class="chart-body" id="runways-chart"></div>
+      <table class="data-table" id="runways-table"></table>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <div>
+          <h3>Most-discussed airports</h3>
+          <p class="chart-caption">Airports with the most user comments</p>
+        </div>
+        <button class="table-toggle" data-target="comments">Table view</button>
+      </div>
+      <div class="chart-body" id="comments-chart"></div>
+      <table class="data-table" id="comments-table"></table>
+    </div>
+  </div>
+
+  <div class="section-title">Engagement trend</div>
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <div>
+        <h3>Comments per month</h3>
+        <p class="chart-caption">June 2007 &ndash; December 2025</p>
+      </div>
+      <button class="table-toggle" data-target="trend">Table view</button>
+    </div>
+    <div class="chart-body" id="trend-chart"></div>
+    <table class="data-table" id="trend-table"></table>
+  </div>
+
+  <div class="footnotes">
+    <p><strong>Data quality note:</strong> the relationship between comments and airports is enforced as a warn-level test, not a hard constraint &mdash; about 1,367 of the 15,644 total comments (~8.7%) reference an airport identifier not present in the current airport registry, reflecting gaps in the underlying open-data source. Ranking charts above only include comments/runways that match a known airport.</p>
+    <p>One test record created while building this project's incremental-model exercise (July 2026) is excluded from the trend chart to avoid an artificial spike.</p>
+  </div>
+</div>
+
+<div class="viz-tooltip" id="viz-tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var topCountries = [
+    { label: "United States", code: "US", value: 29270 },
+    { label: "Brazil", code: "BR", value: 6325 },
+    { label: "Japan", code: "JP", value: 3222 },
+    { label: "Canada", code: "CA", value: 2914 },
+    { label: "Australia", code: "AU", value: 2384 },
+    { label: "Mexico", code: "MX", value: 2141 },
+    { label: "Russia", code: "RU", value: 1522 },
+    { label: "South Korea", code: "KR", value: 1394 },
+    { label: "United Kingdom", code: "GB", value: 1359 },
+    { label: "Germany", code: "DE", value: 1016 }
+  ];
+
+  var topRunways = [
+    { label: "Chicago O'Hare Intl (KORD)", sub: "US", value: 11 },
+    { label: "Norfolk Naval Station (KNHU)", sub: "US", value: 10 },
+    { label: "West 30th St. Heliport (JRA)", sub: "US", value: 9 },
+    { label: "Chevron Intracoastal Heliport (1LA9)", sub: "US", value: 8 },
+    { label: "Spencer Nolf Airport (KNRQ)", sub: "US", value: 8 },
+    { label: "Shell Army Heliport (SXS)", sub: "US", value: 8 },
+    { label: "Petroleum Helicopters Heliport (TA12)", sub: "US", value: 8 },
+    { label: "Brown Stagefield Army Heliport (06AL)", sub: "US", value: 7 },
+    { label: "Stinson Stagefield Army Heliport (22AL)", sub: "US", value: 7 },
+    { label: "Lucas Army Heliport (25AL)", sub: "US", value: 7 }
+  ];
+
+  var topComments = [
+    { label: "Ninoy Aquino Intl (RPLL)", sub: "PH", value: 1707 },
+    { label: "Amravati (Belora) Airstrip (IN-0065)", sub: "IN", value: 478 },
+    { label: "Douala Intl (FKKD)", sub: "CM", value: 434 },
+    { label: "Diosdado Macapagal Intl (RPLC)", sub: "PH", value: 330 },
+    { label: "OR Tambo Intl (FAOR)", sub: "ZA", value: 113 },
+    { label: "Muzaffarpur Airport (VEMZ)", sub: "IN", value: 78 },
+    { label: "Aldinga Airport (YADG)", sub: "AU", value: 78 },
+    { label: "Beja Airport / Airbase (LPBJ)", sub: "PT", value: 67 },
+    { label: "Chennai Intl (VOMM)", sub: "IN", value: 62 },
+    { label: "Bacolod-Silay Airport (RPVB)", sub: "PH", value: 35 }
+  ];
+
+  var trend = [
+    ["2007-06",36],["2007-07",463],["2007-08",126],["2007-09",40],["2007-10",25],["2007-11",59],["2007-12",41],
+    ["2008-01",92],["2008-02",46],["2008-03",33],["2008-04",34],["2008-05",26],["2008-06",32],["2008-07",21],["2008-08",52],["2008-09",28],["2008-10",41],["2008-11",24],["2008-12",49],
+    ["2009-01",200],["2009-02",26],["2009-03",66],["2009-04",35],["2009-05",83],["2009-06",68],["2009-07",86],["2009-08",217],["2009-09",70],["2009-10",50],["2009-11",56],["2009-12",159],
+    ["2010-01",62],["2010-02",56],["2010-03",91],["2010-04",75],["2010-05",96],["2010-06",97],["2010-07",61],["2010-08",82],["2010-09",83],["2010-10",64],["2010-11",61],["2010-12",83],
+    ["2011-01",110],["2011-02",75],["2011-03",88],["2011-04",92],["2011-05",112],["2011-06",105],["2011-07",121],["2011-08",116],["2011-09",128],["2011-10",122],["2011-11",110],["2011-12",125],
+    ["2012-01",111],["2012-02",100],["2012-03",120],["2012-04",93],["2012-05",127],["2012-06",163],["2012-07",140],["2012-08",151],["2012-09",140],["2012-10",173],["2012-11",186],["2012-12",134],
+    ["2013-01",117],["2013-02",113],["2013-03",145],["2013-04",172],["2013-05",121],["2013-06",125],["2013-07",130],["2013-08",126],["2013-09",127],["2013-10",93],["2013-11",99],["2013-12",72],
+    ["2014-01",77],["2014-02",77],["2014-03",128],["2014-04",126],["2014-05",55],["2014-06",48],["2014-07",46],["2014-08",56],["2014-09",79],["2014-10",69],["2014-11",98],["2014-12",75],
+    ["2015-01",53],["2015-02",30],["2015-03",63],["2015-04",50],["2015-05",73],["2015-06",76],["2015-07",69],["2015-08",74],["2015-09",39],["2015-10",69],["2015-11",37],["2015-12",39],
+    ["2016-01",71],["2016-02",75],["2016-03",72],["2016-04",111],["2016-05",90],["2016-06",144],["2016-07",216],["2016-08",163],["2016-09",171],["2016-10",126],["2016-11",117],["2016-12",99],
+    ["2017-01",141],["2017-02",98],["2017-03",213],["2017-04",167],["2017-05",176],["2017-06",250],["2017-07",166],["2017-08",133],["2017-09",68],["2017-10",61],["2017-11",100],["2017-12",56],
+    ["2018-01",74],["2018-02",60],["2018-03",184],["2018-04",44],["2018-05",50],["2018-06",27],["2018-07",43],["2018-08",30],["2018-09",31],["2018-10",24],["2018-11",22],["2018-12",33],
+    ["2019-01",35],["2019-02",26],["2019-03",25],["2019-04",25],["2019-05",21],["2019-06",18],["2019-07",42],["2019-08",43],["2019-09",12],["2019-10",22],["2019-11",32],["2019-12",10],
+    ["2020-01",24],["2020-02",3],["2020-03",15],["2020-04",6],["2020-05",24],["2020-06",36],["2020-07",12],["2020-08",31],["2020-09",24],["2020-10",68],["2020-11",54],["2020-12",14],
+    ["2021-01",4],["2021-02",20],["2021-03",47],["2021-04",24],["2021-05",22],["2021-06",14],["2021-07",19],["2021-08",17],["2021-09",13],["2021-10",9],["2021-11",42],["2021-12",136],
+    ["2022-01",440],["2022-02",164],["2022-03",51],["2022-04",22],["2022-05",22],["2022-06",31],["2022-07",8],["2022-08",30],["2022-09",13],["2022-10",18],["2022-11",72],["2022-12",23],
+    ["2023-01",23],["2023-02",14],["2023-03",37],["2023-04",65],["2023-05",23],["2023-06",30],["2023-07",24],["2023-08",48],["2023-09",16],["2023-10",15],["2023-11",25],["2023-12",9],
+    ["2024-01",15],["2024-02",19],["2024-03",14],["2024-04",32],["2024-05",14],["2024-06",2],["2024-07",14],["2024-08",15],["2024-09",13],["2024-10",9],["2024-11",10],["2024-12",23],
+    ["2025-01",28],["2025-02",47],["2025-03",11],["2025-04",30],["2025-05",12],["2025-06",9],["2025-07",19],["2025-08",17],["2025-09",18],["2025-10",21],["2025-11",37],["2025-12",13]
+  ];
+
+  function fmtInt(n) { return n.toLocaleString("en-US"); }
+
+  // ---------- Tooltip ----------
+  var tooltipEl = document.getElementById("viz-tooltip");
+  function showTooltip(x, y, valueText, labelText) {
+    tooltipEl.innerHTML = "";
+    var v = document.createElement("div");
+    v.className = "tt-value";
+    v.textContent = valueText;
+    var l = document.createElement("div");
+    l.className = "tt-label";
+    l.textContent = labelText;
+    tooltipEl.appendChild(v);
+    tooltipEl.appendChild(l);
+    var ttWidth = 220;
+    var left = x + 14;
+    if (left + ttWidth > window.innerWidth) left = x - ttWidth - 14;
+    tooltipEl.style.left = left + "px";
+    tooltipEl.style.top = (y - 10) + "px";
+    tooltipEl.classList.add("is-visible");
+  }
+  function hideTooltip() { tooltipEl.classList.remove("is-visible"); }
+
+  function niceMax(v) {
+    var mag = Math.pow(10, Math.floor(Math.log10(v || 1)));
+    var norm = v / mag;
+    var step = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+    return step * mag;
+  }
+
+  // ---------- Horizontal bar chart ----------
+  function renderBarChart(containerId, tableId, data) {
+    var container = document.getElementById(containerId);
+    var W = 640, rowH = 30, leftPad = 4, rightPad = 46, labelColW = 220;
+    var plotW = W - labelColW - rightPad;
+    var H = data.length * rowH + 8;
+    var maxVal = niceMax(Math.max.apply(null, data.map(function (d) { return d.value; })));
+
+    var ticks = [0, maxVal * 0.25, maxVal * 0.5, maxVal * 0.75, maxVal];
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Bar chart");
+
+    // gridlines
+    ticks.forEach(function (t) {
+      var x = labelColW + (t / maxVal) * plotW;
+      var line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", x); line.setAttribute("x2", x);
+      line.setAttribute("y1", 0); line.setAttribute("y2", H - 14);
+      line.setAttribute("class", "grid-line");
+      svg.appendChild(line);
+    });
+    var axis = document.createElementNS(svgNS, "line");
+    axis.setAttribute("x1", labelColW); axis.setAttribute("x2", labelColW);
+    axis.setAttribute("y1", 0); axis.setAttribute("y2", H - 14);
+    axis.setAttribute("class", "axis-line");
+    svg.appendChild(axis);
+
+    data.forEach(function (d, i) {
+      var y = i * rowH;
+      var barH = 18;
+      var barY = y + (rowH - barH) / 2;
+      var barW = Math.max(2, (d.value / maxVal) * plotW);
+
+      var hit = document.createElementNS(svgNS, "rect");
+      hit.setAttribute("x", 0); hit.setAttribute("y", y);
+      hit.setAttribute("width", W); hit.setAttribute("height", rowH);
+      hit.setAttribute("class", "bar-row-hit");
+      hit.setAttribute("tabindex", "0");
+
+      var r = Math.min(4, barW / 2, barH / 2);
+      var bx = labelColW, by = barY, bw = barW, bh = barH;
+      var barPath = "M " + bx + " " + by +
+        " L " + (bx + bw - r) + " " + by +
+        " Q " + (bx + bw) + " " + by + " " + (bx + bw) + " " + (by + r) +
+        " L " + (bx + bw) + " " + (by + bh - r) +
+        " Q " + (bx + bw) + " " + (by + bh) + " " + (bx + bw - r) + " " + (by + bh) +
+        " L " + bx + " " + (by + bh) + " Z";
+      var bar = document.createElementNS(svgNS, "path");
+      bar.setAttribute("d", barPath);
+      bar.setAttribute("class", "bar-fill");
+
+      var catLabel = document.createElementNS(svgNS, "text");
+      catLabel.setAttribute("x", labelColW - 10); catLabel.setAttribute("y", y + rowH / 2 + 4);
+      catLabel.setAttribute("text-anchor", "end");
+      catLabel.setAttribute("class", "bar-cat-label");
+      catLabel.textContent = d.label.length > 30 ? d.label.slice(0, 29) + "…" : d.label;
+
+      var valLabel = document.createElementNS(svgNS, "text");
+      valLabel.setAttribute("x", labelColW + barW + 8); valLabel.setAttribute("y", y + rowH / 2 + 4);
+      valLabel.setAttribute("class", "bar-val-label");
+      valLabel.textContent = fmtInt(d.value);
+
+      function onEnter(evt) {
+        bar.classList.add("is-hover");
+        var rect = hit.getBoundingClientRect();
+        showTooltip(rect.right, rect.top + rect.height / 2, fmtInt(d.value), d.label + (d.sub ? " · " + d.sub : ""));
+      }
+      function onLeave() { bar.classList.remove("is-hover"); hideTooltip(); }
+      hit.addEventListener("pointerenter", onEnter);
+      hit.addEventListener("pointermove", onEnter);
+      hit.addEventListener("pointerleave", onLeave);
+      hit.addEventListener("focus", onEnter);
+      hit.addEventListener("blur", onLeave);
+
+      svg.appendChild(hit);
+      svg.appendChild(bar);
+      svg.appendChild(catLabel);
+      svg.appendChild(valLabel);
+    });
+
+    container.appendChild(svg);
+
+    // table view twin
+    var table = document.getElementById(tableId);
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    ["Name", "Value"].forEach(function (h) {
+      var th = document.createElement("th");
+      th.textContent = h;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    data.forEach(function (d) {
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td");
+      td1.textContent = d.label + (d.sub ? " (" + d.sub + ")" : "");
+      var td2 = document.createElement("td");
+      td2.textContent = fmtInt(d.value);
+      tr.appendChild(td1); tr.appendChild(td2);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+  }
+
+  renderBarChart("countries-chart", "countries-table", topCountries);
+  renderBarChart("runways-chart", "runways-table", topRunways);
+  renderBarChart("comments-chart", "comments-table", topComments);
+
+  // ---------- Line chart ----------
+  function renderLineChart(containerId, tableId, data) {
+    var container = document.getElementById(containerId);
+    var W = 1080, H = 300, padL = 44, padR = 16, padT = 16, padB = 30;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var maxVal = niceMax(Math.max.apply(null, data.map(function (d) { return d[1]; })));
+    var n = data.length;
+
+    function xAt(i) { return padL + (i / (n - 1)) * plotW; }
+    function yAt(v) { return padT + plotH - (v / maxVal) * plotH; }
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Line chart of comments per month");
+
+    // y gridlines
+    var yTicks = [0, maxVal * 0.25, maxVal * 0.5, maxVal * 0.75, maxVal];
+    yTicks.forEach(function (t) {
+      var y = yAt(t);
+      var line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", padL); line.setAttribute("x2", W - padR);
+      line.setAttribute("y1", y); line.setAttribute("y2", y);
+      line.setAttribute("class", "grid-line");
+      svg.appendChild(line);
+      var lbl = document.createElementNS(svgNS, "text");
+      lbl.setAttribute("x", padL - 8); lbl.setAttribute("y", y + 4);
+      lbl.setAttribute("text-anchor", "end");
+      lbl.setAttribute("class", "axis-tick-label");
+      lbl.textContent = fmtInt(Math.round(t));
+      svg.appendChild(lbl);
+    });
+
+    // x axis: January of each year
+    data.forEach(function (d, i) {
+      if (d[0].slice(5, 7) === "01") {
+        var x = xAt(i);
+        var lbl = document.createElementNS(svgNS, "text");
+        lbl.setAttribute("x", x); lbl.setAttribute("y", H - 8);
+        lbl.setAttribute("text-anchor", "middle");
+        lbl.setAttribute("class", "axis-tick-label");
+        lbl.textContent = d[0].slice(0, 4);
+        svg.appendChild(lbl);
+      }
+    });
+    var axis = document.createElementNS(svgNS, "line");
+    axis.setAttribute("x1", padL); axis.setAttribute("x2", W - padR);
+    axis.setAttribute("y1", padT + plotH); axis.setAttribute("y2", padT + plotH);
+    axis.setAttribute("class", "axis-line");
+    svg.appendChild(axis);
+
+    // area + line
+    var linePts = data.map(function (d, i) { return xAt(i) + "," + yAt(d[1]); }).join(" ");
+    var areaPts = "" + xAt(0) + "," + yAt(0) + " " + linePts + " " + xAt(n - 1) + "," + yAt(0);
+    var area = document.createElementNS(svgNS, "polygon");
+    area.setAttribute("points", areaPts);
+    area.setAttribute("class", "area-path");
+    svg.appendChild(area);
+
+    var line = document.createElementNS(svgNS, "polyline");
+    line.setAttribute("points", linePts);
+    line.setAttribute("class", "line-path");
+    svg.appendChild(line);
+
+    // end marker + label
+    var lastX = xAt(n - 1), lastY = yAt(data[n - 1][1]);
+    var endDot = document.createElementNS(svgNS, "circle");
+    endDot.setAttribute("cx", lastX); endDot.setAttribute("cy", lastY); endDot.setAttribute("r", 4);
+    endDot.setAttribute("class", "end-dot");
+    svg.appendChild(endDot);
+    var endLabel = document.createElementNS(svgNS, "text");
+    endLabel.setAttribute("x", lastX - 8); endLabel.setAttribute("y", lastY - 10);
+    endLabel.setAttribute("text-anchor", "end");
+    endLabel.setAttribute("class", "line-end-label");
+    endLabel.textContent = fmtInt(data[n - 1][1]);
+    svg.appendChild(endLabel);
+
+    // crosshair + hover dot
+    var crosshair = document.createElementNS(svgNS, "line");
+    crosshair.setAttribute("y1", padT); crosshair.setAttribute("y2", padT + plotH);
+    crosshair.setAttribute("class", "crosshair");
+    svg.appendChild(crosshair);
+    var hoverDot = document.createElementNS(svgNS, "circle");
+    hoverDot.setAttribute("r", 4);
+    hoverDot.setAttribute("class", "hover-dot");
+    svg.appendChild(hoverDot);
+
+    var hitRect = document.createElementNS(svgNS, "rect");
+    hitRect.setAttribute("x", padL); hitRect.setAttribute("y", padT);
+    hitRect.setAttribute("width", plotW); hitRect.setAttribute("height", plotH);
+    hitRect.setAttribute("fill", "transparent");
+    hitRect.setAttribute("style", "cursor: crosshair;");
+    svg.appendChild(hitRect);
+
+    function monthLabel(key) {
+      var parts = key.split("-");
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return months[parseInt(parts[1], 10) - 1] + " " + parts[0];
+    }
+
+    function onMove(evt) {
+      var rect = hitRect.getBoundingClientRect();
+      var scale = W / rect.width;
+      var px = (evt.clientX - rect.left) * scale;
+      var idx = Math.round(((px - padL) / plotW) * (n - 1));
+      idx = Math.max(0, Math.min(n - 1, idx));
+      var x = xAt(idx), y = yAt(data[idx][1]);
+      crosshair.setAttribute("x1", x); crosshair.setAttribute("x2", x);
+      crosshair.style.display = "block";
+      hoverDot.setAttribute("cx", x); hoverDot.setAttribute("cy", y);
+      hoverDot.style.display = "block";
+      var svgRect = svg.getBoundingClientRect();
+      var clientX = svgRect.left + x / scale;
+      var clientY = svgRect.top + y / scale;
+      showTooltip(clientX, clientY, fmtInt(data[idx][1]) + " comments", monthLabel(data[idx][0]));
+    }
+    function onLeave() {
+      crosshair.style.display = "none";
+      hoverDot.style.display = "none";
+      hideTooltip();
+    }
+    hitRect.addEventListener("pointermove", onMove);
+    hitRect.addEventListener("pointerleave", onLeave);
+
+    container.appendChild(svg);
+
+    var table = document.getElementById(tableId);
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    ["Month", "Comments"].forEach(function (h) {
+      var th = document.createElement("th");
+      th.textContent = h;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    data.forEach(function (d) {
+      var tr = document.createElement("tr");
+      var td1 = document.createElement("td");
+      td1.textContent = monthLabel(d[0]);
+      var td2 = document.createElement("td");
+      td2.textContent = fmtInt(d[1]);
+      tr.appendChild(td1); tr.appendChild(td2);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+  }
+
+  renderLineChart("trend-chart", "trend-table", trend);
+
+  // ---------- Table-view toggles ----------
+  document.querySelectorAll(".table-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var target = btn.getAttribute("data-target");
+      var chartBody = document.getElementById(target + "-chart");
+      var table = document.getElementById(target + "-table");
+      var showingTable = table.classList.contains("is-visible");
+      if (showingTable) {
+        table.classList.remove("is-visible");
+        chartBody.classList.remove("is-hidden");
+        btn.textContent = "Table view";
+      } else {
+        table.classList.add("is-visible");
+        chartBody.classList.add("is-hidden");
+        btn.textContent = "Chart view";
+      }
+    });
+  });
+})();
+</script>

@@ -25,6 +25,8 @@ models:
   airstats:
     silver:
       +materialized: table
+    gold:
+      +materialized: table
 
 tests:
   airstats:

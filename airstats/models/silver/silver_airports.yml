@@ -49,6 +49,21 @@ models:
                 min_value: -180
                 max_value: 180
 
+      - name: airport_elevation_ft
+        description: "Elevation above sea level in feet."
+
+      - name: airport_municipality
+        description: "City or municipality the airport serves."
+
+      - name: airport_scheduled_service
+        description: "Whether the airport has scheduled commercial service ('yes' or 'no')."
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - "yes"
+                  - "no"
+
       - name: continent
         description: "Two-letter continent code the airport is located in (e.g. EU, NA)."
 
